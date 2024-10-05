@@ -35,10 +35,10 @@ from OpenBench.models import Result, Test
 
 from django.db import transaction
 
-def get_workload(machine):
+def get_workload(request, machine):
 
     # Select a workload from the possible ones, if we can
-    if not (test := select_workload(machine)):
+    if not (test := select_workload(request, machine)):
         return {}
 
     # Avoid creating duplicate Result objects
@@ -51,10 +51,10 @@ def get_workload(machine):
 
     return { 'workload' : workload_to_dictionary(test, result, machine) }
 
-def select_workload(machine):
+def select_workload(request, machine):
 
     # Step 1: Refine active workloads to the candidate assignments
-    candidates, has_focus = filter_valid_workloads(machine)
+    candidates, has_focus = filter_valid_workloads(request, machine)
     if not candidates:
         return None
 
@@ -87,7 +87,7 @@ def select_workload(machine):
     weights = [data['throughput'] for id, data in worker_dist.items() if data['ratio'] == min_ratio]
     return Test.objects.get(id=random.choices(choices, weights=weights)[0])
 
-def filter_valid_workloads(machine):
+def filter_valid_workloads(request, machine):
 
     workloads = OpenBench.utils.get_active_tests()
 
@@ -96,6 +96,10 @@ def filter_valid_workloads(machine):
         if engine not in machine.info['supported']:
             workloads = workloads.exclude(dev_engine=engine)
             workloads = workloads.exclude(base_engine=engine)
+
+    # Skip workloads that are blacklisted on the machine
+    if blacklisted := request.POST.getlist('blacklist'):
+        workloads = workloads.exclude(id__in=blacklisted)
 
     # Skip workloads with unmet Syzygy requirements
     for K in range(machine.info['syzygy_max'] + 1, 10):
@@ -244,11 +248,13 @@ def workload_to_dictionary(test, result, machine):
 
         cutechess_cnt = workload['distribution']['cutechess-count']
         pairs_per_cnt = workload['distribution']['games-per-cutechess'] // 2
+        per_opening   = 2 if (test.test_mode == 'DATAGEN' and not test.play_reverses) else 1
 
-        if test.test_mode == 'DATAGEN' and not test.play_reverses:
-            test.book_index += cutechess_cnt * pairs_per_cnt * 2
-        else:
-            test.book_index += cutechess_cnt * pairs_per_cnt
+        test.book_index += cutechess_cnt * pairs_per_cnt * per_opening
+
+        if test.test_mode == 'DATAGEN':
+            workload['test']['genfens_seeds'] = [
+                random.randint(0, 2**31 - 1) for x in range(machine.info['concurrency'])]
 
         test.save()
 

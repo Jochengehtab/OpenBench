@@ -14,7 +14,7 @@
 
         "default" : {
             "base_branch"     : "master",
-            "book_name"       : "Pohl.epd",
+            "book_name"       : "UHO_4060_v2.epd",
             "test_bounds"     : "[0.00, 5.00]",
             "test_confidence" : "[0.05, 0.05]",
             "win_adj"         : "movecount=4 score=750",
@@ -28,19 +28,19 @@
         },
 
         "LTC" : {
-            "both_options"      : "Threads=1 Hash=64",
+            "both_options"      : "Threads=1 Hash=64 OutputLevel=Minimal",
             "both_time_control" : "40.0+0.4",
             "workload_size"     : 8
         },
 
         "SMP STC" : {
-            "both_options"      : "Threads=8 Hash=64",
+            "both_options"      : "Threads=8 Hash=64 OutputLevel=Minimal",
             "both_time_control" : "5.0+0.05",
             "workload_size"     : 64
         },
 
         "SMP LTC" : {
-            "both_options"      : "Threads=8 Hash=256",
+            "both_options"      : "Threads=8 Hash=256 OutputLevel=Minimal",
             "both_time_control" : "20.0+0.2",
             "workload_size"     : 16
         }
@@ -49,7 +49,7 @@
     "tune_presets" : {
 
         "default" : {
-            "book_name" : "Pohl.epd",
+            "book_name" : "UHO_4060_v2.epd",
             "win_adj"   : "movecount=4 score=750",
             "draw_adj"  : "movenumber=60 movecount=10 score=0"
         }
