@@ -7,7 +7,7 @@
         "path"      : "src",
         "compilers" : ["clang++", "g++"],
         "cpuflags"  : ["POPCNT"],
-        "systems"   : ["Windows"]
+        "systems"   : ["Windows", "Linux"]
     },
 
     "test_presets" : {
